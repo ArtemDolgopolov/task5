@@ -4,17 +4,23 @@ import { Book } from '../interfaces/interface';
 
 const fakerLocales = { en, de, fr };
 
-export default function generateBook(seed: number, pageNumber: number, language: string): Book {
+const generateRandomInteger = (value: number, rng: seedrandom.prng): number => {
+  const floorValue = Math.floor(value);
+  const fraction = value - floorValue;
+  return Math.random() < fraction ? floorValue + 1 : floorValue;
+};
+
+export default function generateBook(seed: number, pageNumber: number, language: string, avgLikes: number, avgReviews: number): Book {
   const rng = seedrandom(`${seed}-${pageNumber}`);
   const faker = new Faker({ locale: [fakerLocales[language] || en] });
 
   const title = `${faker.word.verb()} ${faker.word.noun()}`;
   const authors = faker.person.fullName();
   const publisher = faker.company.name();
-  const isbn = faker.commerce.isbn()
+  const isbn = faker.commerce.isbn();
 
-  const reviews = Math.round(faker.number.float({ min: 0, max: 10, fractionDigits: 1 }));
-  const likes = Math.round(faker.number.float({ min: 0, max: 10, fractionDigits: 1 }));
+  const likes = generateRandomInteger(avgLikes, rng);
+  const reviews = generateRandomInteger(avgReviews, rng);
 
   const book: Book = {
     index: pageNumber * 20 + Math.floor(rng() * 20),
@@ -25,8 +31,8 @@ export default function generateBook(seed: number, pageNumber: number, language:
     language,
     likes,
     reviews,
-    cover: faker.image.urlLoremFlickr(),
-    reviewDetails: Array.from({ length: Math.round(reviews) }, () => faker.lorem.sentence()),
+    cover: faker.image.urlLoremFlickr({ width: 300, height: 300, category: "abstract" }),
+    reviewDetails: Array.from({ length: reviews }, () => faker.lorem.sentence()),
   };
 
   return book;
